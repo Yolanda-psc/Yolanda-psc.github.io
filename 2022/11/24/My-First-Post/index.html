@@ -1,0 +1,382 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="pragma" content="no-cache">
+  <meta http-equiv="cache-control" content="no-cache">
+  <meta http-equiv="expires" content="0">
+  
+  <title>手写简易版webpack | 不吃香菜胡萝卜🥕</title>
+  <meta name="author" content="Yolanda">
+  
+  <meta name="description" content="明确 webpack 实现的功能
+本质上，webpack 是一个现代 JavaScript 应用程序的静态模块打包器(module bundler)。 当 webpack 处理应用程序时，它会递归地构建一个依赖关系图(dependency graph)，其中包含应用程序需要的每个模块，然后将所有这些">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="手写简易版webpack"/>
+  <meta property="og:site_name" content="不吃香菜胡萝卜🥕"/>
+
+  
+    <meta property="og:image" content=""/>
+  
+
+  
+  
+    <link href="/favicon.png" rel="icon">
+  
+  
+  <link rel="stylesheet" href="/css/bootstrap.min.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/font-awesome.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/responsive.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/highlight.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/google-fonts.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+  <script src="/js/jquery-2.0.3.min.js"></script>
+
+  <!-- analytics -->
+  
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-70812759-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?cb5448498d7169c668b07c2b255d62c1";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+<meta name="generator" content="Hexo 5.4.2"></head>
+
+ <body>  
+  <nav id="main-nav" class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container">
+      <button type="button" class="navbar-header navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+		<span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+	  <a class="navbar-brand" href="/">不吃香菜胡萝卜🥕</a>
+      <div class="collapse navbar-collapse nav-menu">
+		<ul class="nav navbar-nav">
+		  
+		  <li>
+			<a href="/archives" title="All the articles.">
+			  <i class=""></i>Archives
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/categories" title="All the categories.">
+			  <i class=""></i>Categories
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/tags" title="All the tags.">
+			  <i class=""></i>Tags
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/about" title="About me.">
+			  <i class=""></i>About
+			</a>
+		  </li>
+		  
+		  <li>
+			<a href="/atom.xml" title="Subscribe me.">
+			  <i class=""></i>RSS
+			</a>
+		  </li>
+		  
+		</ul>
+      </div>
+    </div> <!-- container -->
+</nav>
+<div class="clearfix"></div>
+
+  <div class="container">
+  	<div class="content">
+    	 
+
+
+	
+		<div class="page-header">
+			<h1> 手写简易版webpack</h1>
+		</div>
+	
+
+
+
+<div class="row post">
+	<!-- cols -->
+	
+	<div id="top_meta"></div>
+	<div class="col-md-9">
+	
+
+	<!-- content -->
+	<div class="mypage">		
+	  		
+
+	  <h2 id="明确-webpack-实现的功能"><a href="#明确-webpack-实现的功能" class="headerlink" title="明确 webpack 实现的功能"></a>明确 webpack 实现的功能</h2><blockquote>
+<p>本质上，webpack 是一个现代 JavaScript 应用程序的静态模块打包器(module bundler)。 当 webpack 处理应用程序时，它会递归地构建一个依赖关系图(dependency graph)，其中包含应用程序需要的每个模块，然后将所有这些模块打包成一个或多个 bundle。</p>
+</blockquote>
+<p><strong>我们的代码主要实现以下四步</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">A(1.找到入口文件)</span><br><span class="line">B(2.解析入口文件并提取出依赖)</span><br><span class="line">C(3.递归创造出依赖图)</span><br><span class="line">D(4.把所有文件打包成一个文件)</span><br></pre></td></tr></table></figure>
+
+<h2 id="开始开发"><a href="#开始开发" class="headerlink" title="开始开发"></a>开始开发</h2><p>** 1.目录下新建三个 js 源文件 **</p>
+<ul>
+<li>entry.js</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> message <span class="keyword">from</span> <span class="string">&quot;./message.js&quot;</span>;</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(message);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>message.js</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> name <span class="keyword">from</span> <span class="string">&quot;./name.js&quot;</span>;</span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="string">`<span class="subst">$&#123;name&#125;</span> is a girl`</span>;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>name.js</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> name = <span class="string">&quot;Yolanda&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>梳理下依赖关系，我们的入口文件是 entry.js，entry 依赖 message，message 依赖 name。</p>
+<p><strong>2.新建一个 mywebpack.js 文件，首先读取一下 entry 入口文件中的内容。</strong><br>读取文件需要用到 node 的一个基础 api-fs(文件系统),fs.readFileSync 可以同步拿到 js 文件中的代码内容。</p>
+<ul>
+<li>mywebpack.js</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> fs = <span class="built_in">require</span>(<span class="string">&quot;fs&quot;</span>);</span><br><span class="line"><span class="keyword">function</span> <span class="title function_">creatAsset</span>(<span class="params">filename</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> content = fs.<span class="title function_">readFileSync</span>(filename, <span class="string">&quot;utf-8&quot;</span>);</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(content);</span><br><span class="line">&#125;</span><br><span class="line"><span class="title function_">creatAsset</span>(<span class="string">&quot;./source/entry.js&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p>在当前目录下运行一下命令, 看一下输出<br><code>node mywebpack.js</code></p>
+<p>输出内容为 entry.js 中的代码：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> message <span class="keyword">from</span> <span class="string">&quot;./message.js&quot;</span>;</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(message);</span><br></pre></td></tr></table></figure>
+
+<p><strong>3. 分析 ast,思考如何解析出 entry.js 文件中的依赖</strong><br>可以使用 ast 工具 <a target="_blank" rel="noopener" href="https://astexplorer.net/">https://astexplorer.net/</a><br>看一下 entry.js 文件的 ast 是什么？</p>
+<p>3.1 可以看到最上级是一个 File, File 中包含换一个 program, 就是我们的程序<br>3.2 在 program 的 body 属性里, 就是我们各种语法的描述<br>3.3 可以看到第一个就是 ImportDeclaration, 也就是引入的声明.<br>3.4 ImportDeclaration 里有一个 source 属性, 它的 value 就是引入的文件地址 ‘./message.js’</p>
+<p><strong>4.生成 entry.js 的 ast</strong><br>首先安装一个 Babylon(基于 Babel 的 js 解析工具)<br><code>npm i babylon</code></p>
+<ul>
+<li>mywebpack.js</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> fs = <span class="built_in">require</span>(<span class="string">&quot;fs&quot;</span>);</span><br><span class="line"><span class="keyword">const</span> babylon = <span class="built_in">require</span>(<span class="string">&quot;babylon&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">createAsset</span>(<span class="params">filename</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> content = fs.<span class="title function_">readFileSync</span>(filename, <span class="string">&quot;utf-8&quot;</span>);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> ast = babylon.<span class="title function_">parse</span>(content, &#123;</span><br><span class="line">    <span class="attr">sourceType</span>: <span class="string">&quot;module&quot;</span>,</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(ast);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="title function_">createAsset</span>(<span class="string">&quot;./source/entry.js&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p>可以看到输出了一个 Object, 这就是咱们 entry.js 的 AST.</p>
+<p><strong>5.基于这个 ast，找到 entry.js 的 ImportDeclaration 中的 source.value</strong><br>首先，需要遍历出 ImportDeclaration 节点，那就需要一个工具：babel-traverse(可以像遍历对象一样遍历 ast 中的节点)<br><code>npm i babel-traverse</code><br>然后利用它遍历并获取到对应节点，提供一个函数来操作此节点。</p>
+<ul>
+<li>mywebpack.js</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> fs = <span class="built_in">require</span>(<span class="string">&quot;fs&quot;</span>);</span><br><span class="line"><span class="keyword">const</span> babylon = <span class="built_in">require</span>(<span class="string">&quot;babylon&quot;</span>);</span><br><span class="line"><span class="keyword">const</span> traverse = <span class="built_in">require</span>(<span class="string">&quot;babel-traverse&quot;</span>).<span class="property">default</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">createAsset</span>(<span class="params">filename</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> content = fs.<span class="title function_">readFileSync</span>(filename, <span class="string">&quot;utf-8&quot;</span>);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> ast = babylon.<span class="title function_">parse</span>(content, &#123;</span><br><span class="line">    <span class="attr">sourceType</span>: <span class="string">&quot;module&quot;</span>,</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  <span class="title function_">traverse</span>(ast, &#123;</span><br><span class="line">    <span class="title class_">ImportDeclaration</span>: <span class="function">(<span class="params">&#123; node &#125;</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="variable language_">console</span>.<span class="title function_">log</span>(node);</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="title function_">createAsset</span>(<span class="string">&quot;./source/entry.js&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p><strong>6.获取 entry.js 的依赖</strong><br>可能会出现多个依赖，这里需要建一个数组存储。</p>
+<ul>
+<li>mywebpack.js</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> fs = <span class="built_in">require</span>(<span class="string">&quot;fs&quot;</span>);</span><br><span class="line"><span class="keyword">const</span> babylon = <span class="built_in">require</span>(<span class="string">&quot;babylon&quot;</span>);</span><br><span class="line"><span class="keyword">const</span> traverse = <span class="built_in">require</span>(<span class="string">&quot;babel-traverse&quot;</span>).<span class="property">default</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">createAsset</span>(<span class="params">filename</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> content = fs.<span class="title function_">readFileSync</span>(filename, <span class="string">&quot;utf-8&quot;</span>);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> ast = babylon.<span class="title function_">parse</span>(content, &#123;</span><br><span class="line">    <span class="attr">sourceType</span>: <span class="string">&quot;module&quot;</span>,</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> dependencies = [];</span><br><span class="line"></span><br><span class="line">  <span class="title function_">traverse</span>(ast, &#123;</span><br><span class="line">    <span class="title class_">ImportDeclaration</span>: <span class="function">(<span class="params">&#123; node &#125;</span>) =&gt;</span> &#123;</span><br><span class="line">      dependencies.<span class="title function_">push</span>(node.<span class="property">source</span>.<span class="property">value</span>);</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(dependencies);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="title function_">createAsset</span>(<span class="string">&quot;./source/entry.js&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p>可以自行打印一下 dependencies 数组看看.这里输出的是一个包括 ImportDeclaration.source.value 的数组。</p>
+<p><strong>7.优化 creatAsset 函数，增加 id 用于区分文件</strong></p>
+<ul>
+<li>mywebpack.js</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> fs = <span class="built_in">require</span>(<span class="string">&quot;fs&quot;</span>);</span><br><span class="line"><span class="keyword">const</span> babylon = <span class="built_in">require</span>(<span class="string">&quot;babylon&quot;</span>);</span><br><span class="line"><span class="keyword">const</span> traverse = <span class="built_in">require</span>(<span class="string">&quot;babel-traverse&quot;</span>).<span class="property">default</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> <span class="variable constant_">ID</span> = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">createAsset</span>(<span class="params">filename</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> content = fs.<span class="title function_">readFileSync</span>(filename, <span class="string">&quot;utf-8&quot;</span>);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> ast = babylon.<span class="title function_">parse</span>(content, &#123;</span><br><span class="line">    <span class="attr">sourceType</span>: <span class="string">&quot;module&quot;</span>,</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> dependencies = [];</span><br><span class="line"></span><br><span class="line">  <span class="title function_">traverse</span>(ast, &#123;</span><br><span class="line">    <span class="title class_">ImportDeclaration</span>: <span class="function">(<span class="params">&#123; node &#125;</span>) =&gt;</span> &#123;</span><br><span class="line">      dependencies.<span class="title function_">push</span>(node.<span class="property">source</span>.<span class="property">value</span>);</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> id = <span class="variable constant_">ID</span>++;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> &#123;</span><br><span class="line">    id,</span><br><span class="line">    filename,</span><br><span class="line">    dependencies,</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">const</span> mainAsset = <span class="title function_">createAsset</span>(<span class="string">&quot;./source/entry.js&quot;</span>);</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(mainAsset);</span><br></pre></td></tr></table></figure>
+
+<p>运行一下看看, 是不是返回了正确的结果.</p>
+<p><strong>8.现在我们有了单个文件的依赖了，接下来尝试建立模块间的依赖关系</strong><br>新建一个 createGraph 函数，在这个函数里引用 createAsset。<br>同时 entry 这个参数是动态的，所以 createGraph 接收 entry 这个参数。</p>
+<ul>
+<li>mywebpack.js - createGraph</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">createGraph</span>(<span class="params">entry</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> mainAsset = <span class="title function_">createAsset</span>(entry);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> graph = <span class="title function_">createGraph</span>(<span class="string">&quot;./source/entry.js&quot;</span>);</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(graph);</span><br></pre></td></tr></table></figure>
+
+<p>声明一个数组：allAsset 用于存储全部的 asset</p>
+<ul>
+<li>mywebpack.js - createGraph</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">createGraph</span>(<span class="params">entry</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> mainAsset = <span class="title function_">createAsset</span>(entry);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> graph = <span class="title function_">createGraph</span>(<span class="string">&quot;./source/entry.js&quot;</span>);</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(graph);</span><br></pre></td></tr></table></figure>
+
+<p><strong>9.把相对路径转换为绝对路径</strong><br>我们在 dependencies 中存储的都是相对路径，但是我们需要绝对路径才能拿到模块的 Asset，这个时候要想办法拿到每个模块的绝对路径。</p>
+<blockquote>
+<p>这里用到了 node 的另一个基础 API：path，其中用到了它的两个方法：<br>1.path.dirname(获取当前文件的路径名)<br>2.path.join(拼接路径)</p>
+</blockquote>
+<ul>
+<li>mywebpack.js - createGraph</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">createGraph</span>(<span class="params">entry</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> mainAsset = <span class="title function_">createAsset</span>(entry);</span><br><span class="line">  <span class="keyword">const</span> allAsset = [mainAsset];</span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> asset <span class="keyword">of</span> allAsset) &#123;</span><br><span class="line">    <span class="keyword">const</span> dirname = path.<span class="title function_">dirname</span>(asset.<span class="property">filename</span>);</span><br><span class="line">    asset.<span class="property">dependencies</span>.<span class="title function_">forEach</span>(<span class="function">(<span class="params">relativePath</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">const</span> absoultePath = path.<span class="title function_">join</span>(dirname, relativePath);</span><br><span class="line">      <span class="keyword">const</span> childAsset = <span class="title function_">createAsset</span>(absoultePath);</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>10.我们还需要一个 map,用于记录 dependencies 和 childAsset 之间的关系</strong><br>map 可以存储模块间的依赖关系，方便后续的查找。</p>
+<ul>
+<li>mywebpack.js - createGraph</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">createGraph</span>(<span class="params">entry</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> mainAsset = <span class="title function_">createAsset</span>(entry);</span><br><span class="line">  <span class="keyword">const</span> allAsset = [mainAsset];</span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> asset <span class="keyword">of</span> allAsset) &#123;</span><br><span class="line">    <span class="keyword">const</span> dirname = path.<span class="title function_">dirname</span>(asset.<span class="property">filename</span>);</span><br><span class="line"></span><br><span class="line">    asset.<span class="property">mapping</span> = &#123;&#125;;</span><br><span class="line"></span><br><span class="line">    asset.<span class="property">dependencies</span>.<span class="title function_">forEach</span>(<span class="function">(<span class="params">relativePath</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">const</span> absoultePath = path.<span class="title function_">join</span>(dirname, relativePath);</span><br><span class="line"></span><br><span class="line">      <span class="keyword">const</span> childAsset = <span class="title function_">createAsset</span>(absoultePath);</span><br><span class="line"></span><br><span class="line">      asset.<span class="property">mapping</span>[relativePath] = childAsset.<span class="property">id</span>;</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>11.遍历所有文件，形成最终的依赖图 🌟🌟🌟🌟🌟</strong><br>核心的一步，就一行代码，完成所有模块的遍历。</p>
+<ul>
+<li>mywebpack.js - createGraph</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">createGraph</span>(<span class="params">entry</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> mainAsset = <span class="title function_">createAsset</span>(entry);</span><br><span class="line">  <span class="keyword">const</span> allAsset = [mainAsset];</span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> asset <span class="keyword">of</span> allAsset) &#123;</span><br><span class="line">    <span class="keyword">const</span> dirname = path.<span class="title function_">dirname</span>(asset.<span class="property">filename</span>);</span><br><span class="line"></span><br><span class="line">    asset.<span class="property">mapping</span> = &#123;&#125;;</span><br><span class="line"></span><br><span class="line">    asset.<span class="property">dependencies</span>.<span class="title function_">forEach</span>(<span class="function">(<span class="params">relativePath</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">const</span> absoultePath = path.<span class="title function_">join</span>(dirname, relativePath);</span><br><span class="line"></span><br><span class="line">      <span class="keyword">const</span> childAsset = <span class="title function_">createAsset</span>(absoultePath);</span><br><span class="line"></span><br><span class="line">      asset.<span class="property">mapping</span>[relativePath] = childAsset.<span class="property">id</span>;</span><br><span class="line">      <span class="comment">//⬇️关键一步，向数组中推进子依赖</span></span><br><span class="line">      allAsset.<span class="title function_">push</span>(childAsset);</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> allAsset;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>获取到了文件依赖图之后，我们需要把所有文件打包成一个文件然后输出。</p>
+<p><strong>12.新增一个方法 bundle</strong><br>最后一个函数了！胜利在望～<br>bundle 实现的是通过 graph 来创造一个立即执行函数，立即执行函数的参数有全部模块的代码体。</p>
+<ul>
+<li>mywebpack.js - bundle</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">bundle</span>(<span class="params">graph</span>) &#123;</span><br><span class="line">  <span class="comment">//自执行函数的参数</span></span><br><span class="line">  <span class="keyword">let</span> modules = <span class="string">&quot;&quot;</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">//遍历所有模块，拼接modules字符串：每个id对应一个value,value里要包括该module的可执行代码</span></span><br><span class="line">  graph.<span class="title function_">forEach</span>(<span class="function">(<span class="params"><span class="variable language_">module</span></span>) =&gt;</span> &#123;</span><br><span class="line">    modules += <span class="string">`<span class="subst">$&#123;<span class="variable language_">module</span>.id&#125;</span>:[</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">        ],`</span>;</span><br><span class="line">  &#125;);</span><br><span class="line">  <span class="comment">//返回的结果</span></span><br><span class="line">  <span class="keyword">const</span> result = <span class="string">`</span></span><br><span class="line"><span class="string">        (function() &#123;</span></span><br><span class="line"><span class="string">            </span></span><br><span class="line"><span class="string">        &#125;)(&#123;<span class="subst">$&#123;modules&#125;</span>&#125;)</span></span><br><span class="line"><span class="string">    `</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>到现在我们会发现，graph 里只记录了每个模块对应的依赖关系，并没有包括可执行的代码体。<br>所以下一步，我们需要获取每个模块的代码体。</p>
+<p>修改 createAsset 函数，获取到代码体且编译。</p>
+<p>首先咱们会用到 babel-core,方便各个插件分析语法进行相应的处理。</p>
+<p>安装他！<br><code>npm i babel-core</code></p>
+<p>还会用到 babel-preset-env，它可以根据开发者的配置，按需加载插件，可以作为预设来编译代码。</p>
+<p>安装他！<br><code>npm i babel-preset-env</code></p>
+<ul>
+<li>mywebpack.js - createAsset</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">createAsset</span>(<span class="params">filename</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> content = fs.<span class="title function_">readFileSync</span>(filename, <span class="string">&quot;utf-8&quot;</span>);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> ast = babylon.<span class="title function_">parse</span>(content, &#123;</span><br><span class="line">    <span class="attr">sourceType</span>: <span class="string">&quot;module&quot;</span>,</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> dependencies = [];</span><br><span class="line"></span><br><span class="line">  <span class="title function_">traverse</span>(ast, &#123;</span><br><span class="line">    <span class="title class_">ImportDeclaration</span>: <span class="function">(<span class="params">&#123; node &#125;</span>) =&gt;</span> &#123;</span><br><span class="line">      dependencies.<span class="title function_">push</span>(node.<span class="property">source</span>.<span class="property">value</span>);</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> id = <span class="variable constant_">ID</span>++;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> &#123; code &#125; = babel.<span class="title function_">transformFromAst</span>(ast, <span class="literal">null</span>, &#123;</span><br><span class="line">    <span class="comment">// 第三个参数, 告诉babel以什么方式编译我们的代码. 这里我们就用官方提供的preset-env, 编译es2015+的js代码.</span></span><br><span class="line">    <span class="comment">// 当然还有其他的各种预设, 可以编译ts, react等等代码.</span></span><br><span class="line">    <span class="attr">presets</span>: [<span class="string">&quot;env&quot;</span>],</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> &#123;</span><br><span class="line">    id,</span><br><span class="line">    filename,</span><br><span class="line">    dependencies,</span><br><span class="line">    code,</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>13.把获取到的 code 放到 result 中</strong><br>根据 commonJs 的规范，每个模块的代码函数需要接收三个参数：require,module,exports。</p>
+<ul>
+<li><p>module 变量代表当前的模块，它是一个变量，其中 exports 属性就是对外的模块。加载某个模块，其实就是加载该模块的 module.exports 属性。</p>
+</li>
+<li><p>mywebpack.js - bundle</p>
+</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">bundle</span>(<span class="params">graph</span>) &#123;</span><br><span class="line">  <span class="keyword">let</span> modules = <span class="string">&quot;&quot;</span>;</span><br><span class="line"></span><br><span class="line">  graph.<span class="title function_">forEach</span>(<span class="function">(<span class="params"><span class="variable language_">module</span></span>) =&gt;</span> &#123;</span><br><span class="line">    modules += <span class="string">`<span class="subst">$&#123;<span class="variable language_">module</span>.id&#125;</span>:[</span></span><br><span class="line"><span class="string">            function(require, module, exports) &#123;</span></span><br><span class="line"><span class="string">                <span class="subst">$&#123;<span class="variable language_">module</span>.code&#125;</span></span></span><br><span class="line"><span class="string">            &#125;,</span></span><br><span class="line"><span class="string">        ],`</span>;</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> result = <span class="string">`</span></span><br><span class="line"><span class="string">        (function() &#123;</span></span><br><span class="line"><span class="string">            </span></span><br><span class="line"><span class="string">        &#125;)(&#123;<span class="subst">$&#123;modules&#125;</span>&#125;)</span></span><br><span class="line"><span class="string">    `</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>接下来开始实现 require 函数，首先需要把 mapping 传到对应 modules 的 value 里面。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">bundle</span>(<span class="params">graph</span>) &#123;</span><br><span class="line">  <span class="keyword">let</span> modules = <span class="string">&quot;&quot;</span>;</span><br><span class="line"></span><br><span class="line">  graph.<span class="title function_">forEach</span>(<span class="function">(<span class="params"><span class="variable language_">module</span></span>) =&gt;</span> &#123;</span><br><span class="line">    modules += <span class="string">`<span class="subst">$&#123;<span class="variable language_">module</span>.id&#125;</span>:[</span></span><br><span class="line"><span class="string">            function(require, module, exports) &#123;</span></span><br><span class="line"><span class="string">                <span class="subst">$&#123;<span class="variable language_">module</span>.code&#125;</span></span></span><br><span class="line"><span class="string">            &#125;,</span></span><br><span class="line"><span class="string">            <span class="subst">$&#123;<span class="built_in">JSON</span>.stringify(<span class="variable language_">module</span>.mapping)&#125;</span>,</span></span><br><span class="line"><span class="string">        ],`</span>;</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> result = <span class="string">`</span></span><br><span class="line"><span class="string">        (function() &#123;</span></span><br><span class="line"><span class="string">            </span></span><br><span class="line"><span class="string">        &#125;)(&#123;<span class="subst">$&#123;modules&#125;</span>&#125;)</span></span><br><span class="line"><span class="string">    `</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>requier 要接收一个参数，来表示引入了哪些代码，这个时候就可以用 mapping 的映射关系，使用 id 找到引入的代码。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">bundle</span>(<span class="params">graph</span>) &#123;</span><br><span class="line">  <span class="keyword">let</span> modules = <span class="string">&quot;&quot;</span>;</span><br><span class="line"></span><br><span class="line">  graph.<span class="title function_">forEach</span>(<span class="function">(<span class="params"><span class="variable language_">module</span></span>) =&gt;</span> &#123;</span><br><span class="line">    modules += <span class="string">`<span class="subst">$&#123;<span class="variable language_">module</span>.id&#125;</span>:[</span></span><br><span class="line"><span class="string">            function(require, module, exports) &#123;</span></span><br><span class="line"><span class="string">                <span class="subst">$&#123;<span class="variable language_">module</span>.code&#125;</span></span></span><br><span class="line"><span class="string">            &#125;,</span></span><br><span class="line"><span class="string">            <span class="subst">$&#123;<span class="built_in">JSON</span>.stringify(<span class="variable language_">module</span>.mapping)&#125;</span>,</span></span><br><span class="line"><span class="string">        ],`</span>;</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 取出的fn是上面定义的modules里的function，mapping是$&#123;JSON.stringify(module.mapping)&#125;</span></span><br><span class="line">  <span class="keyword">const</span> result = <span class="string">`</span></span><br><span class="line"><span class="string">        (function(modules) &#123;</span></span><br><span class="line"><span class="string">            function require(id) &#123;</span></span><br><span class="line"><span class="string">                const [fn, mapping] = modules[id];</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">                function localRequire(relativePath) &#123;</span></span><br><span class="line"><span class="string">                    return require(mapping[relativePath]);</span></span><br><span class="line"><span class="string">                &#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">                const module = &#123; exports: &#123;&#125;&#125;;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">                fn(localRequire, module, module.exports);</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">                return module.exports;</span></span><br><span class="line"><span class="string">            &#125;</span></span><br><span class="line"><span class="string">            require(0);</span></span><br><span class="line"><span class="string">        &#125;)(&#123;<span class="subst">$&#123;modules&#125;</span>&#125;)</span></span><br><span class="line"><span class="string">    `</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当当当！到这里就基本完成了我们的简易版 webpack,这个时候可以 node 运行下 mywebpack.js，把输出的结果代码复制到浏览器里看看能不能正常运行。<br>浏览器打印出：Yolanda is a girl 就意味着你的 webpack 已经正常运转起来了！给自己鼓个掌吧～</p>
+<p>最后可以优化一下流程，每次都复制到浏览器看输出结果有点费劲，可以配置下 package.json 用命令行操作。<br><code>npm init</code></p>
+<ul>
+<li>package.json</li>
+</ul>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">&quot;scripts&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;build&quot;</span><span class="punctuation">:</span> <span class="string">&quot;rm -rf dist.js &amp;&amp; node mywebpack.js &gt; dist.js&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br></pre></td></tr></table></figure>
+
+<p>最后运行</p>
+<p><code>npm run build</code>.</p>
+<p>大功告成！</p>
+<h2 id="贴上-mywebpack-js-完整代码："><a href="#贴上-mywebpack-js-完整代码：" class="headerlink" title="贴上 mywebpack.js 完整代码："></a>贴上 mywebpack.js 完整代码：</h2><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 步骤：</span></span><br><span class="line"><span class="comment">// 1.找到一个入口文件；</span></span><br><span class="line"><span class="comment">// 2.解析这个入口文件，提起入口文件的依赖；</span></span><br><span class="line"><span class="comment">// 3.解析入口文件中依赖的依赖，递归的创造一个依赖图，可以描述文件间的依赖关系；</span></span><br><span class="line"><span class="comment">// 4.将所有的文件打包成一个文件。</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//node里面的fs模块可以读取文件</span></span><br><span class="line"><span class="keyword">const</span> fs = <span class="built_in">require</span>(<span class="string">&quot;fs&quot;</span>);</span><br><span class="line"><span class="comment">//node的基础api 可以帮助拿到绝对路径</span></span><br><span class="line"><span class="keyword">const</span> path = <span class="built_in">require</span>(<span class="string">&quot;path&quot;</span>);</span><br><span class="line"><span class="comment">//babel（语法转换）的解析工具</span></span><br><span class="line"><span class="keyword">const</span> babylon = <span class="built_in">require</span>(<span class="string">&quot;babylon&quot;</span>);</span><br><span class="line"><span class="comment">//babel-traverse :可以像遍历对象一样遍历ast中的节点</span></span><br><span class="line"><span class="keyword">const</span> tranverse = <span class="built_in">require</span>(<span class="string">&quot;babel-traverse&quot;</span>).<span class="property">default</span>;</span><br><span class="line"><span class="comment">//babel-core:把js文件解析为ast</span></span><br><span class="line"><span class="keyword">const</span> babel = <span class="built_in">require</span>(<span class="string">&quot;babel-core&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">//记录ID</span></span><br><span class="line"><span class="keyword">let</span> <span class="variable constant_">ID</span> = <span class="number">0</span>;</span><br><span class="line"><span class="comment">//拿到该file的id，filename 以及 依赖的数组</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">createAsset</span>(<span class="params">filename</span>) &#123;</span><br><span class="line">  <span class="comment">//同步的读取文件</span></span><br><span class="line">  <span class="keyword">const</span> content = fs.<span class="title function_">readFileSync</span>(filename, <span class="string">&quot;utf-8&quot;</span>);</span><br><span class="line">  <span class="comment">//转化为ast找到相应节点</span></span><br><span class="line">  <span class="keyword">const</span> ast = babylon.<span class="title function_">parse</span>(content, &#123;</span><br><span class="line">    <span class="attr">sourceType</span>: <span class="string">&quot;module&quot;</span>,</span><br><span class="line">  &#125;);</span><br><span class="line">  <span class="comment">//定义一个数组用于储存依赖</span></span><br><span class="line">  <span class="keyword">const</span> dependencies = [];</span><br><span class="line">  <span class="comment">//定义一个id 每调用一次creatAsset函数id++</span></span><br><span class="line">  <span class="keyword">let</span> id = <span class="variable constant_">ID</span>++;</span><br><span class="line"></span><br><span class="line">  <span class="comment">//遍历拿到ImportDeclaration中的source中的value</span></span><br><span class="line">  <span class="title function_">tranverse</span>(ast, &#123;</span><br><span class="line">    <span class="title class_">ImportDeclaration</span>: <span class="function">(<span class="params">&#123; node &#125;</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="comment">//拿到node中的source的value push到储存依赖的数组里</span></span><br><span class="line">      dependencies.<span class="title function_">push</span>(node.<span class="property">source</span>.<span class="property">value</span>);</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;);</span><br><span class="line">  <span class="keyword">const</span> &#123; code &#125; = babel.<span class="title function_">transformFromAst</span>(ast, <span class="literal">null</span>, &#123;</span><br><span class="line">    <span class="attr">presets</span>: [<span class="string">&quot;env&quot;</span>],</span><br><span class="line">  &#125;);</span><br><span class="line">  <span class="comment">//输出一个对象，其中包括id，filename以及它所依赖的dependencies</span></span><br><span class="line">  <span class="keyword">return</span> &#123;</span><br><span class="line">    id,</span><br><span class="line">    filename,</span><br><span class="line">    dependencies,</span><br><span class="line">    code,</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//创建依赖图 核心！！</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">createGraph</span>(<span class="params">entry</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> mainAsset = <span class="title function_">createAsset</span>(entry);</span><br><span class="line">  <span class="keyword">const</span> allAsset = [mainAsset];</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> asset <span class="keyword">of</span> allAsset) &#123;</span><br><span class="line">    <span class="comment">//拿到当前的dirname</span></span><br><span class="line">    <span class="keyword">const</span> dirname = path.<span class="title function_">dirname</span>(asset.<span class="property">filename</span>);</span><br><span class="line">    <span class="comment">//给asset新增一个mapping对象，方便后续查找</span></span><br><span class="line">    asset.<span class="property">mapping</span> = &#123;&#125;;</span><br><span class="line">    <span class="comment">//将dependencies中的相对路径转化为绝对路径</span></span><br><span class="line">    asset.<span class="property">dependencies</span>.<span class="title function_">forEach</span>(<span class="function">(<span class="params">relativePath</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">const</span> absolutePath = path.<span class="title function_">join</span>(dirname, relativePath);</span><br><span class="line">      <span class="comment">//拿到绝对路径下的子元素的asset内容</span></span><br><span class="line">      <span class="keyword">const</span> childAsset = <span class="title function_">createAsset</span>(absolutePath);</span><br><span class="line">      <span class="comment">//存储对应关系</span></span><br><span class="line">      asset.<span class="property">mapping</span>[relativePath] = childAsset.<span class="property">id</span>;</span><br><span class="line">      <span class="comment">//递归的核心一行代码！！🌟🌟🌟🌟🌟</span></span><br><span class="line">      allAsset.<span class="title function_">push</span>(childAsset);</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> allAsset;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//创建整体结果代码块（需要立即执行）接收module作为参数</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">bundle</span>(<span class="params">graph</span>) &#123;</span><br><span class="line">  <span class="keyword">let</span> modules = <span class="string">&quot;&quot;</span>;</span><br><span class="line">  graph.<span class="title function_">forEach</span>(<span class="function">(<span class="params"><span class="variable language_">module</span></span>) =&gt;</span> &#123;</span><br><span class="line">    modules += <span class="string">`</span></span><br><span class="line"><span class="string">        <span class="subst">$&#123;<span class="variable language_">module</span>.id&#125;</span>:[</span></span><br><span class="line"><span class="string">            function(require,module,exports)&#123;</span></span><br><span class="line"><span class="string">                <span class="subst">$&#123;<span class="variable language_">module</span>.code&#125;</span></span></span><br><span class="line"><span class="string">            &#125;,</span></span><br><span class="line"><span class="string">            <span class="subst">$&#123;<span class="built_in">JSON</span>.stringify(<span class="variable language_">module</span>.mapping)&#125;</span></span></span><br><span class="line"><span class="string">        ],</span></span><br><span class="line"><span class="string">        `</span>;</span><br><span class="line">  &#125;);</span><br><span class="line">  <span class="comment">//输出的结果为字符串</span></span><br><span class="line">  <span class="keyword">const</span> result = <span class="string">`(</span></span><br><span class="line"><span class="string">    function(modules)&#123;</span></span><br><span class="line"><span class="string">         function require(id)&#123;</span></span><br><span class="line"><span class="string">             const [fn,mapping] = modules[id];</span></span><br><span class="line"><span class="string">             function localRequire(relativePath)&#123;</span></span><br><span class="line"><span class="string">                 return require(mapping[relativePath])</span></span><br><span class="line"><span class="string">             &#125;</span></span><br><span class="line"><span class="string">             const module = &#123; exports:&#123;&#125;&#125;</span></span><br><span class="line"><span class="string">             fn(localRequire,module,module.exports)</span></span><br><span class="line"><span class="string">             </span></span><br><span class="line"><span class="string">             return module.exports</span></span><br><span class="line"><span class="string">         &#125;</span></span><br><span class="line"><span class="string">         require(0)</span></span><br><span class="line"><span class="string">    &#125;</span></span><br><span class="line"><span class="string">    )(&#123;<span class="subst">$&#123;modules&#125;</span>&#125;)`</span>;</span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//传入相对路径</span></span><br><span class="line"><span class="keyword">const</span> graph = <span class="title function_">createGraph</span>(<span class="string">&quot;./source/entry.js&quot;</span>);</span><br><span class="line"><span class="keyword">const</span> res = <span class="title function_">bundle</span>(graph);</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(res);</span><br></pre></td></tr></table></figure>
+	  
+	</div>
+
+	<div>
+  	<center>
+	<div class="pagination">
+
+    
+</div>
+
+    </center>
+	</div>
+	
+	<!-- comment -->
+	
+<section id="comment">
+    <h2 class="title">留言</h2>
+
+    
+</section>
+
+
+	</div> <!-- col-md-9/col-md-12 -->
+		
+	
+	<div id="side_meta">
+		<div class="col-md-3" id="post_meta"> 
+
+	<!-- date -->
+	
+	<div class="meta-widget">
+	<i class="fa fa-clock-o"></i>
+	2022-11-24 
+	</div>
+	
+
+	<!-- categories -->
+    
+
+	<!-- tags -->
+		
+
+	<!-- toc -->
+	<div class="meta-widget">
+	
+	</div>
+	
+    <hr>
+	
+</div><!-- col-md-3 -->
+
+	</div>
+		
+
+</div><!-- row -->
+
+
+
+	</div>
+  </div>
+  <div class="container-narrow">
+  <footer> <p>
+  &copy; 2022 Yolanda
+  
+      with help from <a href="http://hexo.io/" target="_blank">Hexo</a>,<a target="_blank" rel="noopener" href="http://github.com/wzpan/hexo-theme-freemind/">Freemind</a>,<a href="http://getbootstrap.com/" target="_blank">Twitter Bootstrap</a> and <a href="http://getbootstrap.com/" target="_blank">BOOTSTRA.386</a>. 
+     <br> Theme by <a target="_blank" rel="noopener" href="http://github.com/wzpan/hexo-theme-freemind/">Freemind.386</a>.    
+</p>
+ </footer>
+</div> <!-- container-narrow -->
+  
+
+
+  
+<a id="gotop" href="#">   
+  <span>⬆︎TOP</span>
+</a>
+
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/bootstrap.min.js"></script>
+<script src="/js/main.js"></script>
+<script src="/js/search.js"></script> 
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+
+   <script type="text/javascript">      
+     var search_path = "search.xml";
+	 if (search_path.length == 0) {
+	 	search_path = "search.xml";
+	 }
+	 var path = "/" + search_path;
+     searchFunc(path, 'local-search-input', 'local-search-result');
+   </script>
+
+</body>
+   </html>
